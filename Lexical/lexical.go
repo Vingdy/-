@@ -34,37 +34,37 @@ var LexicalResult []LexicalResultStruct
 
 /*
 预扫描
-扫描文本并清除其中的注释语句,有错误proText为nil,否则err为空
-参数:proText []rune
-返回:proText []rune,err error
- */
-func PreScan(proText []rune)([]rune,error) {
-	//fmt.Println(proText)
-	for i := 0; i < len(proText); i++ {
-		if i == len(proText)-1 {
+扫描文本并清除其中的注释语句,有错误SourceProgram为nil,否则err为空
+参数:SourceProgram []rune
+返回:SourceProgram []rune,err error
+*/
+func PreScan(SourceProgram []rune)([]rune,error) {
+	//fmt.Println(SourceProgram)
+	for i := 0; i < len(SourceProgram); i++ {
+		if i == len(SourceProgram)-1 {
 			continue
-		} else if proText[i] == '/' && proText[i+1] == '/' {
-			for ; i < len(proText); i++ {
-				if proText[i] == '\n' {
+		} else if SourceProgram[i] == '/' && SourceProgram[i+1] == '/' {
+			for ; i < len(SourceProgram); i++ {
+				if SourceProgram[i] == '\n' {
 					break
 				}
-				proText[i] = ' '
+				SourceProgram[i] = ' '
 			}
-		} else if proText[i] == '/' && proText[i+1] == '*' {
-			for ; i < len(proText); i++ {
-				if proText[i] == '*' && proText[i+1] == '/' {
-					proText[i] = ' '
-					proText[i+1] = ' '
+		} else if SourceProgram[i] == '/' && SourceProgram[i+1] == '*' {
+			for ; i < len(SourceProgram); i++ {
+				if SourceProgram[i] == '*' && SourceProgram[i+1] == '/' {
+					SourceProgram[i] = ' '
+					SourceProgram[i+1] = ' '
 					break
 				}
-				if i >= len(proText)-1 {
+				if i >= len(SourceProgram)-1 {
 					return nil, errors.New("注释错误")
 				}
-				proText[i] = ' '
+				SourceProgram[i] = ' '
 			}
 		}
 	}
-	return proText,nil
+	return SourceProgram,nil
 }
 
 /*
@@ -72,7 +72,7 @@ func PreScan(proText []rune)([]rune,error) {
 输出词法分析结果查看用于编译阶段测试用
 参数:void
 返回:void
- */
+*/
 func OutputLexicalResult() {
 	if (SaveNumber == 0) {
 		return
@@ -86,17 +86,15 @@ func OutputLexicalResult() {
 扫描
 扫描预扫描后的源程序并生成二元式
 扫描优先级:空格>界符>空格>英文>数字
-参数:proText []rune
+参数:SourceProgram []rune
 返回:err error
- */
-func Scan(proText []rune)(error) {
+*/
+func Scan(SourceProgram []rune)(error) {
 
 	var token = "" //保存当前字符串
 
-	for i := 0; i < len(proText); i++ {
-		fmt.Println(token)
-
-		if IsSpace(string(proText[i])) {
+	for i := 0; i < len(SourceProgram); i++ {
+		if IsSpace(string(SourceProgram[i])) {
 			token = ""
 			continue
 		} else if DecollatorWordsHandle(token) {
@@ -107,42 +105,40 @@ func Scan(proText []rune)(error) {
 			token = ""
 			i--
 			continue
-		} else if IsEnglish(string(proText[i])) {
+		} else if IsEnglish(string(SourceProgram[i])) {
 			for ; ; i++ {
-				fmt.Println(token)
 				if ReserveWordsHandle(token) {
 					token = ""
 					break
-				} else if IsSpecialCharacter(string(proText[i])) || IsSpace(string(proText[i])) {
+				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {
 					VariableWordsHandle(token)
 					i--
 					token = ""
 					break
-				} else if i > len(proText)-1 {
+				} else if i > len(SourceProgram)-1 {
 					return errors.New("词法分析扫描错误")
 				} else {
-					token += string(proText[i])
+					token += string(SourceProgram[i])
 				}
 			}
-		} else if IsMath(string(proText[i])) {
+		} else if IsMath(string(SourceProgram[i])) {
 			for ; ; i++ {
-				fmt.Println(token)
-				if IsEnglish(string(proText[i])) {
+				if IsEnglish(string(SourceProgram[i])) {
 					i--
 					break
-				} else if IsSpecialCharacter(string(proText[i])) || IsSpace(string(proText[i])) {
+				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {
 					ConstWordsHandle(token)
 					token = ""
 					i--
 					break
-				} else if i > len(proText) {
+				} else if i > len(SourceProgram) {
 					return errors.New("词法分析扫面错误")
 				} else {
-					token += string(proText[i])
+					token += string(SourceProgram[i])
 				}
 			}
 		} else {
-			token += string(proText[i])
+			token += string(SourceProgram[i])
 		}
 	}
 	OutputLexicalResult()
@@ -154,13 +150,9 @@ func Scan(proText []rune)(error) {
 判断当前字符是否是\n,\r,\t, ,四个空符号
 参数:token string
 返回:ok bool
- */
+*/
 func IsSpace(token string)bool {
-	if token == " " || token == "\r" || token == "\t" || token == "\n" {
-		return true
-	} else {
-		return false
-	}
+	return token == " " || token == "\r" || token == "\t" || token == "\n"
 }
 
 /*
@@ -168,13 +160,9 @@ func IsSpace(token string)bool {
 判断当前字符是否是英文字符
 参数:token string
 返回:ok bool
- */
+*/
 func IsEnglish(token string)bool {
-	if (token >= "A" && token <= "Z") || (token >= "a" && token <= "z") {
-		return true
-	} else {
-		return false
-	}
+	return (token >= "A" && token <= "Z") || (token >= "a" && token <= "z")
 }
 
 /*
@@ -182,14 +170,10 @@ func IsEnglish(token string)bool {
 判断当前字符是否是数字符号
 参数:token string
 返回:ok bool
- */
- func IsMath(token string)bool {
-	 if token >= "0" && token <= "9" {
-		 return true
-	 } else {
-		 return false
-	 }
- }
+*/
+func IsMath(token string)bool {
+	return token >= "0" && token <= "9"
+}
 
 /*
 特殊字符判断
@@ -197,7 +181,7 @@ func IsEnglish(token string)bool {
 参数:token string
 返回:ok bool
 */
- func IsSpecialCharacter(token string)bool {
+func IsSpecialCharacter(token string)bool {
 	 for char, _ := range OperatorWords {
 		 if token == char {
 			 return true
