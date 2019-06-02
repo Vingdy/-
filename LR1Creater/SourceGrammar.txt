@@ -1,3 +1,4 @@
+X->S
 S->vx
 S->x=E
 S->vx=E

@@ -91,57 +91,68 @@ func OutputLexicalResult() {
 */
 func Scan(SourceProgram []rune)(error) {
 
-	var token = "" //保存当前字符串
+	var token= "" //保存当前字符串
 
+	//遍历源程序
 	for i := 0; i < len(SourceProgram); i++ {
-		if IsSpace(string(SourceProgram[i])) {
+		if IsSpace(string(SourceProgram[i])) { //判断空格
 			token = ""
 			continue
-		} else if DecollatorWordsHandle(token) {
-			token = ""
-			i--
-			continue
-		} else if OperatorWordsHandle(token) {
+		} else if DecollatorWordsHandle(token) { //判断界符
 			token = ""
 			i--
 			continue
-		} else if IsEnglish(string(SourceProgram[i])) {
+		} else if OperatorWordsHandle(token) { //判断操作符
+			token = ""
+			i--
+			continue
+		} else if IsEnglish(string(SourceProgram[i])) { //判断英文
 			for ; ; i++ {
-				if ReserveWordsHandle(token) {
-					token = ""
-					break
-				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {
-					VariableWordsHandle(token)
+				if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) { //检测到特殊字符或者空格
+					if ReserveWordsHandle(token) { //判断当前字符串是否是关键字
+						token = ""
+						break
+					} else {
+						VariableWordsHandle(token) //跳出并认定为标识符
+						i--
+						token = ""
+						break
+					}
+				} else if i > len(SourceProgram)-1 { //扫到最后一个仍然为标识符
+					//return errors.New("源程序错误，词法分析出错")
+					VariableWordsHandle(token) //跳出并认定为标识符
 					i--
 					token = ""
 					break
-				} else if i > len(SourceProgram)-1 {
-					return errors.New("词法分析扫描错误")
 				} else {
-					token += string(SourceProgram[i])
+					token += string(SourceProgram[i])//加入下一个字符
 				}
 			}
-		} else if IsMath(string(SourceProgram[i])) {
+		} else if IsMath(string(SourceProgram[i])) {//判断数字
 			for ; ; i++ {
-				if IsEnglish(string(SourceProgram[i])) {
+				if IsEnglish(string(SourceProgram[i])) {//出现英语返回上一个进入标识符判断
 					i--
 					break
-				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {
+				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {//判断特殊字符和空格
+					ConstWordsHandle(token)//认定为常数处理
+					token = ""
+					i--
+					break
+				} else if i > len(SourceProgram)-1 {//最后处理
+					//return errors.New("源程序错误，词法分析出错")
 					ConstWordsHandle(token)
 					token = ""
 					i--
 					break
-				} else if i > len(SourceProgram) {
-					return errors.New("词法分析扫面错误")
 				} else {
-					token += string(SourceProgram[i])
+					token += string(SourceProgram[i])//加入下一个字符
 				}
 			}
 		} else {
-			token += string(SourceProgram[i])
+			token += string(SourceProgram[i])//加入下一个字符
 		}
 	}
-	OutputLexicalResult()
+	OutputLexicalResult()//输出词法分析结果
 	return nil
 }
 
