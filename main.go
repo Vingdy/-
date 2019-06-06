@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"Lexical"
 	"log"
-	"LR1Creater"
+	"LR1Build"
+	"Grammar"
 )
 
 //源程序存放处
@@ -41,6 +42,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	LR1Creater.LR1Create()
-	//fmt.Println(err)
+	LR1Build.LR1_Build()
+	Grammar.Do()
 }
