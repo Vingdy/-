@@ -33,6 +33,12 @@ func ReadSourceProgramFile() {
 */
 func main() {
 	ReadSourceProgramFile()
+	LexicalHandle()
+	LR1Build.LR1_Build()
+	Grammar.Do()
+}
+
+func LexicalHandle()error{
 	SourceProgram, err := Lexical.PreScan(SourceProgram)
 	if err != nil {
 		log.Panic(err)
@@ -42,6 +48,5 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	LR1Build.LR1_Build()
-	Grammar.Do()
+	return nil
 }

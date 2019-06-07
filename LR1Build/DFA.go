@@ -43,14 +43,14 @@ func Table_Build() {
 			} else if IsUpper(ClosureUnit[i].Closure[j].G.next[ClosureUnit[i].Closure[j].Node]) { //非终结符
 				LR1AG = append(LR1AG, LR1AGStruct{
 					AG:         'G',
-					End:        ClosureUnit[i].Closure[j].End,
+					End:        ClosureUnit[i].Closure[j].G.next[ClosureUnit[i].Closure[j].Node],
 					ClosureNum: i,
 					Result:     ClosureUnit[i].Closure[j].NextUnit,
 				})
 			} else if !IsUpper(ClosureUnit[i].Closure[j].G.next[ClosureUnit[i].Closure[j].Node]) { //终结符
 				LR1AG = append(LR1AG, LR1AGStruct{
 					AG:         'A',
-					End:        ClosureUnit[i].Closure[j].End,
+					End:        ClosureUnit[i].Closure[j].G.next[ClosureUnit[i].Closure[j].Node],
 					ClosureNum: i,
 					Result:     ClosureUnit[i].Closure[j].NextUnit,
 				})

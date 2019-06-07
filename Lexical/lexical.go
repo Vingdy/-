@@ -8,30 +8,42 @@ import (
 
 //保留字
 var ReserveWords=map[string]int{
-	"if": 8, "else": 9, "while": 10, "var": 11, "true": 20, "false": 21,
+	"var": 1, "print": 2, "if": 3, "else": 4, "while": 5, "true": 6, "false": 7,
 }
 //界符
 var DecollatorWords=map[string]int{
-	"{": 5, "}": 6, "(": 15, ")": 16, ";": 17,
+	"{": 22, "}": 23, "(": 20, ")": 21, ";": 24,
 }
 //操作符
 var OperatorWords= map[string]int{
-	"+": 1, "-": 2, "*": 3, "/": 4, "=": 7, "!=": 12, ">": 13, "<": 14, ">=": 18, "<=": 19,
+	"+": 10, "-": 11, "*": 12, "/": 13, "=": 14, "!=": 15, "<": 16, ">": 17, "<=": 18, ">=": 19,
 }
 //变量
-var VariableWords []string
-var Variable=20
+/*
+type VariableWordsStruct struct{
+	words string
+	value int
+}*/
+var VariableWords=make(map[string]int)
+var VariableWordNum=0
+var Variable=8
 //常量
-var Const=21
+var Const=9
 //结果存放
 var SaveNumber=0//二元式数量
-type LexicalResultStruct struct{
-	character      string//内容
-	classification string//符号类别
-	value          int//值
+
+type LexicalResultStruct struct {
+	Character  string //内容
+	Codevalue  int    //符号类别
+	Typenumber int    //值
 }
 var LexicalResult []LexicalResultStruct
 
+type LexicalResultListStruct struct {
+	LexicalList []LexicalResultStruct
+	ListNum     int
+}
+var LexicalResultList []LexicalResultListStruct
 /*
 预扫描
 扫描文本并清除其中的注释语句,有错误SourceProgram为nil,否则err为空
@@ -69,17 +81,33 @@ func PreScan(SourceProgram []rune)([]rune,error) {
 
 /*
 输出词法分析结果
-输出词法分析结果查看用于编译阶段测试用
+输出词法分析结果并把结果放置到词法分析结果列查看用于编译阶段测试用
 参数:void
 返回:void
 */
-func OutputLexicalResult() {
-	if (SaveNumber == 0) {
-		return
+func OutputLexicalResult()error {
+	if SaveNumber == 0 {
+		return nil
 	}
-	for _, Result := range LexicalResult {
-		fmt.Println(Result.character + "->(" + Result.classification + "," + strconv.Itoa(Result.value) + ")")
+	var ListNum = 0
+	LexicalResultList = append(LexicalResultList, LexicalResultListStruct{})
+	for Num, Result := range LexicalResult {
+		fmt.Println(Result.Character + "->(" + strconv.Itoa(Result.Codevalue) + "," + strconv.Itoa(Result.Typenumber) + ")")
+		LexicalResultList[ListNum].LexicalList = append(LexicalResultList[ListNum].LexicalList, Result)
+		if Result.Character == ";" && Num != (len(LexicalResult)-1) { //以;为一列
+			ListNum++
+			LexicalResultList = append(LexicalResultList, LexicalResultListStruct{})
+		}
 	}
+	for i := 0; i < len(LexicalResultList); i++ {
+		for j := 0; j < len(LexicalResultList[i].LexicalList); j++ {
+			if (j == len(LexicalResultList[i].LexicalList)-1) && (LexicalResultList[i].LexicalList[j].Character != ";") {
+				fmt.Println(LexicalResultList[i].LexicalList[j].Character)
+				return errors.New("词法分析错误,有句子结尾没有;")
+			}
+		}
+	}
+	return nil
 }
 
 /*
@@ -95,9 +123,15 @@ func Scan(SourceProgram []rune)(error) {
 
 	//遍历源程序
 	for i := 0; i < len(SourceProgram); i++ {
+		//fmt.Println(token)
 		if IsSpace(string(SourceProgram[i])) { //判断空格
-			token = ""
-			continue
+			if DecollatorWordsHandle(token){
+				token = ""
+				continue
+			} else if OperatorWordsHandle(token){
+				token = ""
+				continue
+			}
 		} else if DecollatorWordsHandle(token) { //判断界符
 			token = ""
 			i--
@@ -110,6 +144,7 @@ func Scan(SourceProgram []rune)(error) {
 			for ; ; i++ {
 				if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) { //检测到特殊字符或者空格
 					if ReserveWordsHandle(token) { //判断当前字符串是否是关键字
+						i--
 						token = ""
 						break
 					} else {
@@ -152,7 +187,10 @@ func Scan(SourceProgram []rune)(error) {
 			token += string(SourceProgram[i])//加入下一个字符
 		}
 	}
-	OutputLexicalResult()//输出词法分析结果
+	err:=OutputLexicalResult()//输出词法分析结果
+	if err!=nil{
+		return err
+	}
 	return nil
 }
 
@@ -216,13 +254,13 @@ func IsSpecialCharacter(token string)bool {
 返回:ok bool
 */
 func ReserveWordsHandle(token string)(bool) {
-	for char, value := range ReserveWords {
-		if (token == char) {
+	for char, Typenumber := range ReserveWords {
+		if token == char {
 			//fmt.Println(1)
 			Result := LexicalResultStruct{
-				character:      char,
-				classification: "保留字",
-				value:          value,
+				Character:  char,
+				Codevalue:  0,
+				Typenumber: Typenumber,
 			}
 			LexicalResult = append(LexicalResult, Result)
 			SaveNumber++
@@ -240,13 +278,13 @@ func ReserveWordsHandle(token string)(bool) {
 返回:ok bool
 */
 func DecollatorWordsHandle(token string)(bool) {
-	for char, value := range DecollatorWords {
-		if (token == char) {
+	for char, Typenumber := range DecollatorWords {
+		if token == char {
 			//fmt.Println(1)
 			Result := LexicalResultStruct{
-				character:      char,
-				classification: "界符",
-				value:          value,
+				Character:  char,
+				Codevalue:  0,
+				Typenumber: Typenumber,
 			}
 			LexicalResult = append(LexicalResult, Result)
 			SaveNumber++
@@ -263,13 +301,13 @@ func DecollatorWordsHandle(token string)(bool) {
 返回:ok bool
 */
 func OperatorWordsHandle(token string)(bool) {
-	for char, value := range OperatorWords {
-		if (token == char) {
+	for char, Typenumber := range OperatorWords {
+		if token == char {
 			//fmt.Println(1)
 			Result := LexicalResultStruct{
-				character:      char,
-				classification: "操作符",
-				value:          value,
+				Character:  char,
+				Codevalue:  0,
+				Typenumber: Typenumber,
 			}
 			LexicalResult = append(LexicalResult, Result)
 			SaveNumber++
@@ -286,10 +324,11 @@ func OperatorWordsHandle(token string)(bool) {
 返回:void
 */
 func VariableWordsHandle(token string) {
+	VariableWords[token]=VariableWordNum
 	Result := LexicalResultStruct{
-		character:      token,
-		classification: "变量",
-		value:          Variable,
+		Character:  token,
+		Codevalue:  VariableWordNum,
+		Typenumber: Variable,
 	}
 	LexicalResult = append(LexicalResult, Result)
 	SaveNumber++
@@ -302,10 +341,11 @@ func VariableWordsHandle(token string) {
 返回:void
 */
 func ConstWordsHandle(token string) {
+	tokennum,_:=strconv.Atoi(token)
 	Result := LexicalResultStruct{
-		character:      token,
-		classification: "常量",
-		value:          Const,
+		Character:  token,
+		Codevalue:  tokennum,
+		Typenumber: Const,
 	}
 	LexicalResult = append(LexicalResult, Result)
 	SaveNumber++
