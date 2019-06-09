@@ -1,6 +1,5 @@
 package LR1Build
 
-
 /*
 LR1表构造
 参数:void
@@ -19,9 +18,8 @@ func Table_Build() {
 					})
 				} else { //规约判断
 					var SameNum int //找到是第几个产生式
-					//IsSame = false
 					for m := 0; m < len(GrammarList); m++ {
-						flag := true
+						flag := true//去重判断
 						for n := 0; n < len(GrammarList[m].next); n++ {
 							if (len(ClosureUnit[i].Closure[j].G.next) != len(GrammarList[m].next)) || (ClosureUnit[i].Closure[j].G.next[n] != GrammarList[m].next[n]) {
 								flag = false
@@ -58,7 +56,6 @@ func Table_Build() {
 		}
 	}
 }
-
 
 /*
 Closure项目集初始化
@@ -116,6 +113,7 @@ func DFA_Build() {
 						var l int
 						l = ClosureUnit[i].Closure[j].Node //用l表示下一个结点
 						if len(ClosureUnit[i].Closure[j].G.next) == (ClosureUnit[i].Closure[j].Node + 1) { //如果只有一个,直接把当前终结符放入,因为β=End
+
 							ClosureUnit[i].Closure = append(ClosureUnit[i].Closure, ClosureStruct{
 								G:    GrammarList[k],
 								Node: 0,
@@ -125,7 +123,7 @@ func DFA_Build() {
 							for m := 0; m < len(First); m++ {
 								if First[m].main == ClosureUnit[i].Closure[j].G.next[l+1] {
 									for n := 0; n < len(First[m].next); n++ {
-										var IsSame bool//这一部位是去除Closure构造出现的相同产生式
+										var IsSame bool //这一部位是去除Closure构造出现的相同产生式
 										IsSame = false
 										for o := 0; o < len(ClosureUnit[i].Closure); o++ {
 											var flag bool
@@ -168,7 +166,7 @@ func DFA_Build() {
 			var SameInt int
 			for k := 0; k < len(ClosureUnit); k++ { //遍历DFA找有无相等
 				for l := 0; l < len(ClosureUnit[k].Closure); l++ {
-					var flag bool
+					var flag bool//去重判断
 					flag = true
 					for m := 0; m < len(ClosureUnit[k].Closure[l].G.next); m++ {
 						if (len(ClosureUnit[k].Closure[l].G.next) != len(NewClosure.G.next)) || (ClosureUnit[k].Closure[l].G.next[m] != NewClosure.G.next[m]) {
@@ -204,16 +202,37 @@ func DFA_Build() {
 					ClosureUnit[i].Closure[j].NextUnit = len(ClosureUnit) - 1
 				}
 			} else { //判断是不是已经DFA边
-				IsFindSame := false
+				IsFindSameInDFA := false
 				var DFASameUnitInt int
 				for k := 0; k < len(ClosureUnit[i].NextRune); k++ { //遍历项目集的指向
 					if NewClosure.G.next[NewClosure.Node-1] == ClosureUnit[i].NextRune[k] { //没有相同的
-						IsFindSame = true
+						IsFindSameInDFA = true
 						DFASameUnitInt = ClosureUnit[i].NextUnit[k]
 					}
 				}
-				if IsFindSame { //找到相同->加入
+				if IsFindSameInDFA { //找到相同->加入
 					if IsSame {
+						var HaveSame bool //这一部位是去除Closure移入时出现的相同产生式
+						HaveSame = false
+						for o := 0; o < len(ClosureUnit[DFASameUnitInt].Closure); o++ {
+							var flag bool
+							flag = true
+							for p := 0; p < len(ClosureUnit[DFASameUnitInt].Closure[o].G.next); p++ {
+								if (len(ClosureUnit[DFASameUnitInt].Closure[o].G.next) != len(NewClosure.G.next)) || (ClosureUnit[DFASameUnitInt].Closure[o].G.next[p] != NewClosure.G.next[p]) {
+									flag = false
+									break
+								}
+							}
+							if flag && (ClosureUnit[DFASameUnitInt].Closure[o].G.main == NewClosure.G.main) && (ClosureUnit[DFASameUnitInt].Closure[o].Node == NewClosure.Node) && (ClosureUnit[DFASameUnitInt].Closure[o].End == NewClosure.End) { //找到了跳出循环
+								HaveSame = true
+								break
+							}
+						}
+						if !HaveSame {
+
+							ClosureUnit[DFASameUnitInt].Closure = append(ClosureUnit[DFASameUnitInt].Closure, NewClosure)
+						}
+
 						ClosureUnit[i].NextRune = append(ClosureUnit[i].NextRune, NewClosure.G.next[NewClosure.Node-1])
 						ClosureUnit[i].NextUnit = append(ClosureUnit[i].NextUnit, DFASameUnitInt)
 						ClosureUnit[i].Closure[j].NextRune = NewClosure.G.next[NewClosure.Node-1]

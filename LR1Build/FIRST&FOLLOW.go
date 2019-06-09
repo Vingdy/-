@@ -41,7 +41,6 @@ func Follow_Build() {
 			}
 		}
 	}
-
 	for i := 0; i < len(Follow); i++ {
 		mainnumber, main := FindSameMain(Follow[i].main, Follow) //main记录是那个Follow集
 		if !IsUpper(main) { //如果是FOLLOW集是终结符跳过
@@ -76,7 +75,6 @@ func Follow_Build() {
 	}
 }
 
-
 /*
 FIRST集创建递归函数
 参数:Nowchar rune(当前搜索字符),mainnumber int(当前First集下标记录),main rune(搜索到的产生式左侧符号)
@@ -94,7 +92,6 @@ func Dfs(Nowchar rune,mainnumber int,main rune) {
 		}
 	}
 }
-
 
 /*
 FIRST集创建

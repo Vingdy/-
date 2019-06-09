@@ -23,15 +23,15 @@ var Follow []GrammarListStruct
 
 //Closure结构体
 type ClosureStruct struct {
-	G GrammarListStruct
-	Node int
-	End rune
+	G        GrammarListStruct
+	Node     int
+	End      rune
 	NextUnit int
 	NextRune rune
 }
 //ClosureUnit结构体
 type ClosureUnitStruct struct {
-	Closure []ClosureStruct
+	Closure  []ClosureStruct
 	NextUnit []int
 	NextRune []rune
 }
@@ -39,18 +39,14 @@ type ClosureUnitStruct struct {
 var ClosureUnit []ClosureUnitStruct
 
 //保存LR1结果结构
-type LR1AGStruct struct{
-	AG rune
-	End rune
+type LR1AGStruct struct {
+	AG         rune
+	End        rune
 	ClosureNum int
-	Result int
+	Result     int
 }
 var LR1AG []LR1AGStruct
-/*
-var LR1Table map[string]map[int]int
-var RuneList []rune
-var RuneNum int
-*/
+
 /*
 LR1分析表创建主函数
 参数:void
@@ -108,60 +104,43 @@ func Output() {
 	for k, v := range ClosureUnit {
 		fmt.Println("I" + strconv.Itoa(k) + ":")
 		for k, vv := range v.NextUnit {
-			fmt.Println(strconv.Itoa(vv)+" "+string(v.NextRune[k]))
+			fmt.Println(strconv.Itoa(vv) + " " + string(v.NextRune[k]))
 		}
 	}
-	file, err := os.OpenFile("./LR1Table.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0766)//O_TRUNC:如果可能,在打开文件时清空文件
+	file, err := os.OpenFile("./LR1Table.txt", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0766) //O_TRUNC:如果可能,在打开文件时清空文件
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer file.Close()
-	fmt.Println("LR1AG:")
-	for _,v:=range LR1AG{
-		if v.AG=='A'{
-			fmt.Println("ACTION("+string(v.End)+","+strconv.Itoa(v.ClosureNum)+")="+strconv.Itoa(v.Result))
-		}else{
-			fmt.Println("GOTO("+string(v.End)+","+strconv.Itoa(v.ClosureNum)+")="+strconv.Itoa(v.Result))
-		}
-		str:=string(v.AG)+" "+string(v.End)+" "+strconv.Itoa(v.ClosureNum)+" "+strconv.Itoa(v.Result)+"\n"
-		file.WriteString(str)
-	}
-	/*
-	for i:=0;i<len(LR1AG);i++{
-		if !IsLR1AGEndSame(LR1AG[i].End) {
-			RuneList=append(RuneList,LR1AG[i].End)
-		}
-	}
-	RuneNum=len(RuneList)
-	fmt.Println("符号表:")
-	for _,v:=range RuneList{
-		fmt.Println(v)
-	}
-	for i:=0;i<len(ClosureUnit);i++ {
-		for j := 0; j < RuneNum; j++ {
-			for k := 0; k < len(LR1AG); k++ {
-				if  {
-					
+	//去重复操作
+	var FmtLR1AG []LR1AGStruct
+	for _, v := range LR1AG {
+		if FmtLR1AG == nil {
+			FmtLR1AG = append(FmtLR1AG, v)
+		} else {
+			HaveSame := false
+			for _, vv := range FmtLR1AG {
+				if v == vv {
+					HaveSame = true
+					break
 				}
 			}
-		}
-	}*/
-}
-
-/*
-判断RuneList符号中有无相同的字符
-参数:find rune(要找的产生式左侧字符)
-返回:bool,找到返回true,否则返回false
-*/
-/*
-func IsLR1AGEndSame(find rune)bool{
-	for _,v:=range RuneList{
-		if find==v{
-			return true
+			if !HaveSame {
+				FmtLR1AG = append(FmtLR1AG, v)
+			}
 		}
 	}
-	return false
-}*/
+	fmt.Println("LR1AG:")
+	for _, v := range FmtLR1AG {
+		if v.AG == 'A' {
+			fmt.Println("ACTION(" + string(v.End) + "," + strconv.Itoa(v.ClosureNum) + ")=" + strconv.Itoa(v.Result))
+		} else {
+			fmt.Println("GOTO(" + string(v.End) + "," + strconv.Itoa(v.ClosureNum) + ")=" + strconv.Itoa(v.Result))
+		}
+		str := string(v.AG) + " " + string(v.End) + " " + strconv.Itoa(v.ClosureNum) + " " + strconv.Itoa(v.Result) + "\n"
+		file.WriteString(str)
+	}
+}
 
 /*
 判断当前字符是否是大小写

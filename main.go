@@ -7,6 +7,7 @@ import (
 	"log"
 	"LR1Build"
 	"Grammar"
+	"Semanteme"
 )
 
 //源程序存放处
@@ -29,15 +30,23 @@ func ReadSourceProgramFile() {
 }
 
 /*
-主程序
+运行主程序
+参数:void
+返回:void
 */
 func main() {
 	ReadSourceProgramFile()
 	LexicalHandle()
 	LR1Build.LR1_Build()
-	Grammar.Do()
+	GrammarHadle()
+	SemantemeHandle()
 }
 
+/*
+词法分析处理
+参数:void
+返回:error
+*/
 func LexicalHandle()error{
 	SourceProgram, err := Lexical.PreScan(SourceProgram)
 	if err != nil {
@@ -45,6 +54,34 @@ func LexicalHandle()error{
 	}
 	fmt.Println(string(SourceProgram))
 	err=Lexical.Scan(SourceProgram)
+	if err != nil {
+		log.Panic(err)
+	}
+	return nil
+}
+
+/*
+语法分析处理
+参数:void
+返回:error
+*/
+func GrammarHadle()error {
+	Grammar.ReadLR1TableFile()
+	Grammar.SetLR1Table()
+	err := Grammar.GetLexicalToAnalysis()
+	if err != nil {
+		log.Panic(err)
+	}
+	return nil
+}
+
+/*
+语义分析处理
+参数:void
+返回:error
+*/
+func SemantemeHandle()error {
+	err := Semanteme.ForestAnalysis()
 	if err != nil {
 		log.Panic(err)
 	}

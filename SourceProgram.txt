@@ -1,4 +1,6 @@
-var i=0;/*asfdf
+var x=1+(2*3);/*asfdf
 sdafdas
 */
-Vr var;
+print x;
+
+;

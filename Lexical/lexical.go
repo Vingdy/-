@@ -19,19 +19,16 @@ var OperatorWords= map[string]int{
 	"+": 10, "-": 11, "*": 12, "/": 13, "=": 14, "!=": 15, "<": 16, ">": 17, "<=": 18, ">=": 19,
 }
 //变量
-/*
-type VariableWordsStruct struct{
-	words string
-	value int
-}*/
-var VariableWords=make(map[string]int)
-var VariableWordNum=0
-var Variable=8
+var VariableWords=make(map[int]int)//初始化
+var VariableTempSave []string//用于检查变量重复命名
+var VariableWordNum=0//用于map中的key值
+var Variable=8//种别编码
 //常量
-var Const=9
+var Const=9//种别编码
 //结果存放
 var SaveNumber=0//二元式数量
 
+//文法结果
 type LexicalResultStruct struct {
 	Character  string //内容
 	Codevalue  int    //符号类别
@@ -39,11 +36,13 @@ type LexicalResultStruct struct {
 }
 var LexicalResult []LexicalResultStruct
 
+//文法结果列
 type LexicalResultListStruct struct {
 	LexicalList []LexicalResultStruct
 	ListNum     int
 }
 var LexicalResultList []LexicalResultListStruct
+
 /*
 预扫描
 扫描文本并清除其中的注释语句,有错误SourceProgram为nil,否则err为空
@@ -76,12 +75,12 @@ func PreScan(SourceProgram []rune)([]rune,error) {
 			}
 		}
 	}
-	return SourceProgram,nil
+	return SourceProgram, nil
 }
 
 /*
 输出词法分析结果
-输出词法分析结果并把结果放置到词法分析结果列查看用于编译阶段测试用
+输出词法分析结果并把结果转化为词法分析结果列查看用于编译阶段测试用
 参数:void
 返回:void
 */
@@ -89,7 +88,7 @@ func OutputLexicalResult()error {
 	if SaveNumber == 0 {
 		return nil
 	}
-	var ListNum = 0
+	var ListNum= 0
 	LexicalResultList = append(LexicalResultList, LexicalResultListStruct{})
 	for Num, Result := range LexicalResult {
 		fmt.Println(Result.Character + "->(" + strconv.Itoa(Result.Codevalue) + "," + strconv.Itoa(Result.Typenumber) + ")")
@@ -97,14 +96,6 @@ func OutputLexicalResult()error {
 		if Result.Character == ";" && Num != (len(LexicalResult)-1) { //以;为一列
 			ListNum++
 			LexicalResultList = append(LexicalResultList, LexicalResultListStruct{})
-		}
-	}
-	for i := 0; i < len(LexicalResultList); i++ {
-		for j := 0; j < len(LexicalResultList[i].LexicalList); j++ {
-			if (j == len(LexicalResultList[i].LexicalList)-1) && (LexicalResultList[i].LexicalList[j].Character != ";") {
-				fmt.Println(LexicalResultList[i].LexicalList[j].Character)
-				return errors.New("词法分析错误,有句子结尾没有;")
-			}
 		}
 	}
 	return nil
@@ -119,16 +110,16 @@ func OutputLexicalResult()error {
 */
 func Scan(SourceProgram []rune)(error) {
 
-	var token= "" //保存当前字符串
+	var token = "" //保存当前字符串
 
 	//遍历源程序
-	for i := 0; i < len(SourceProgram); i++ {
+	for i := 0; i <= len(SourceProgram); i++ {
 		//fmt.Println(token)
-		if IsSpace(string(SourceProgram[i])) { //判断空格
-			if DecollatorWordsHandle(token){
+		if (i == len(SourceProgram)) || IsSpace(string(SourceProgram[i])) { //判断空格
+			if DecollatorWordsHandle(token) {
 				token = ""
 				continue
-			} else if OperatorWordsHandle(token){
+			} else if OperatorWordsHandle(token) {
 				token = ""
 				continue
 			}
@@ -160,35 +151,35 @@ func Scan(SourceProgram []rune)(error) {
 					token = ""
 					break
 				} else {
-					token += string(SourceProgram[i])//加入下一个字符
+					token += string(SourceProgram[i]) //加入下一个字符
 				}
 			}
-		} else if IsMath(string(SourceProgram[i])) {//判断数字
+		} else if IsMath(string(SourceProgram[i])) { //判断数字
 			for ; ; i++ {
-				if IsEnglish(string(SourceProgram[i])) {//出现英语返回上一个进入标识符判断
+				if IsEnglish(string(SourceProgram[i])) { //出现英语返回上一个进入标识符判断
 					i--
 					break
-				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) {//判断特殊字符和空格
-					ConstWordsHandle(token)//认定为常数处理
+				} else if IsSpecialCharacter(string(SourceProgram[i])) || IsSpace(string(SourceProgram[i])) { //判断特殊字符和空格
+					ConstWordsHandle(token) //认定为常数处理
 					token = ""
 					i--
 					break
-				} else if i > len(SourceProgram)-1 {//最后处理
+				} else if i > len(SourceProgram)-1 { //最后处理
 					//return errors.New("源程序错误，词法分析出错")
 					ConstWordsHandle(token)
 					token = ""
 					i--
 					break
 				} else {
-					token += string(SourceProgram[i])//加入下一个字符
+					token += string(SourceProgram[i]) //加入下一个字符
 				}
 			}
 		} else {
-			token += string(SourceProgram[i])//加入下一个字符
+			token += string(SourceProgram[i]) //加入下一个字符
 		}
 	}
-	err:=OutputLexicalResult()//输出词法分析结果
-	if err!=nil{
+	err := OutputLexicalResult() //输出词法分析结果
+	if err != nil {
 		return err
 	}
 	return nil
@@ -324,11 +315,19 @@ func OperatorWordsHandle(token string)(bool) {
 返回:void
 */
 func VariableWordsHandle(token string) {
-	VariableWords[token]=VariableWordNum
+	VariableWords[VariableWordNum] = VariableWordNum
 	Result := LexicalResultStruct{
 		Character:  token,
 		Codevalue:  VariableWordNum,
 		Typenumber: Variable,
+	}
+	VariableWordNum++
+	VariableTempSave = append(VariableTempSave, token)
+	for _, v := range VariableTempSave {
+		if v == token {
+			VariableWordNum--
+			VariableTempSave = append(VariableTempSave[:(len(VariableTempSave) - 1)], VariableTempSave[len(VariableTempSave):]...)
+		}
 	}
 	LexicalResult = append(LexicalResult, Result)
 	SaveNumber++
