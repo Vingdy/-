@@ -81,7 +81,7 @@ LR1TableFile: "LR1Table.txt"
 
 运行结果:
 
-![1560101394370](C:\Users\zhchx\AppData\Roaming\Typora\typora-user-images\1560101394370.png)![1560101382194](C:\Users\zhchx\AppData\Roaming\Typora\typora-user-images\1560101382194.png)
+![1560101394370](https://github.com/Vingdy/CompilerExperiment/blob/master/Result1.png)![1560101382194](https://github.com/Vingdy/CompilerExperiment/blob/master/Result2.png)
 
 
 ## 进度
