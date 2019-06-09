@@ -243,7 +243,7 @@ func SaveGrammarList() {
 返回:void
 */
 func ReadSourceGrammarFile() {
-	body, err := ioutil.ReadFile("LR1Build/SourceGrammar.txt")
+	body, err := ioutil.ReadFile("./SourceGrammar.txt")
 	if err != nil {
 		fmt.Println(err)
 	}

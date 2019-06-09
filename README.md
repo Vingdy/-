@@ -1,14 +1,88 @@
 # CompilerExperiment
 
-为了最终的编译原理大作业写的一个，
-非常奶衣服的一个，功能十分受限的编译器。
+为了最终的编译原理实验写的一个，
 
-## 指令集（暂定）
+真的非常简单的一个，功能十分受限的编译器。
+
+基本是按照原理一步一步尝试修改完成的，很艰难而且痛苦
+
+一开始想得挺多额，想做个比较完整的，最后还是输给了时间和精力，如果以后有精力的话再来优化一下代码吧（虽然我觉得不太可能
+
+很多Go的特性没有用到，而且主要在数据结构的考虑比较久，本应该能做到更快更好的，乖乖看书吧
+
+## 指令集
 
 - `var x;`：定义变量`x`（浮点型），初值默认为0。
 - `var x = [expression];`：定义变量`x`（浮点型），并将`[expression]`的值赋给`x`。
 - `x = [expression];`：将表达式`[expression]`的值赋值给`x`，表达式仅支持带小括号的四则运算。
 - `print [expression];`：输出表达式`[expression]`的值。
+- 支持`/*` +`*/`与`//`的注释方式
+
+## 使用方法
+
+exe版:在同一目录下创建SourceProgram.txt和SourceGrammar.txt文件分别输入对应程序和文法，然后创建conf.yaml输入
+
+```
+projectPath: "./"
+isUseLR1Build: true
+grammarFile: "SourceGrammar.txt"
+programFile: "SourceProgram.txt"
+LR1TableFile: "LR1Table.txt"
+```
+
+然后运行exe即可看到结果，10s后关闭
+
+程序版:直接下载然后运行main.go
+
+Ps:isUseLR1Build如果设置为true会看到大量的LR1分析表信息生成一次后尽量改为false
+
+## 使用例子
+
+SourceProgram.txt:
+
+```
+var x=1+(2*3);/*asfdf
+sdafdas
+*/
+print x;
+
+;
+```
+
+SourceGrammar.txt:
+
+```
+X->S
+S->vx
+S->x=E
+S->vx=E
+S->pE
+E->E+T
+E->E-T
+E->T
+T->T*F
+T->T/F
+T->F
+F->(E)
+F->x
+F->c
+```
+
+conf.yaml:
+
+
+```
+projectPath: "./"
+isUseLR1Build: false
+grammarFile: "SourceGrammar.txt"
+programFile: "SourceProgram.txt"
+LR1TableFile: "LR1Table.txt"
+```
+
+运行结果:
+
+![1560101394370](C:\Users\zhchx\AppData\Roaming\Typora\typora-user-images\1560101394370.png)![1560101382194](C:\Users\zhchx\AppData\Roaming\Typora\typora-user-images\1560101382194.png)
+
 
 ## 进度
 
@@ -38,6 +112,8 @@
 
 
 ## 开发日志
+
+**2019.06.10**：增加配置文件，删除测试与无用输出，交叉编译Win版本和Linux版的exe文件
 
 **2019.06.09**：完成语义分析部分，修改语法分析中树生成的BUG，完成Comilper开发
 

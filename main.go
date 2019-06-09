@@ -1,33 +1,19 @@
 package main
 
 import (
-	"io/ioutil"
-	"fmt"
 	"Lexical"
 	"log"
 	"LR1Build"
 	"Grammar"
 	"Semanteme"
+	"Conf"
+	"os"
+	"fmt"
+	"time"
 )
 
-//源程序存放处
-var SourceProgram []rune
-
-/*
-读取源程序文件
-读取保存在SourceProgram.txt中的源代码
-参数:void
-返回:void
-*/
-func ReadSourceProgramFile() {
-	body, err := ioutil.ReadFile("SourceProgram.txt")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("源程序：")
-	fmt.Println(string(body))
-	SourceProgram = []rune(string(body))
-}
+//配置
+var conf Conf.ConfSturct
 
 /*
 运行主程序
@@ -35,11 +21,20 @@ func ReadSourceProgramFile() {
 返回:void
 */
 func main() {
-	ReadSourceProgramFile()
-	LexicalHandle()
-	LR1Build.LR1_Build()
-	GrammarHadle()
+	conf.GetConf()
+	//fmt.Println(conf)
+	LexicalHandle(conf)
+	if conf.IsUseLR1Build {
+		file, err := os.OpenFile(conf.ProjectPath+conf.LR1TableFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0766) //O_TRUNC:如果可能,在打开文件时清空文件
+		if err != nil {
+			fmt.Println(err)
+		}
+		file.Close()
+		LR1Build.LR1_Build()
+	}
+	GrammarHandle(conf)
 	SemantemeHandle()
+	time.Sleep(10 * time.Second)
 }
 
 /*
@@ -47,15 +42,18 @@ func main() {
 参数:void
 返回:error
 */
-func LexicalHandle()error{
-	SourceProgram, err := Lexical.PreScan(SourceProgram)
+func LexicalHandle(conf Conf.ConfSturct)error{
+	Lexical.ReadSourceProgramFile(conf)
+	SourceProgram, err := Lexical.PreScan(Lexical.SourceProgram)
 	if err != nil {
 		log.Panic(err)
+		panic(err)
 	}
-	fmt.Println(string(SourceProgram))
+	//fmt.Println(string(SourceProgram))
 	err=Lexical.Scan(SourceProgram)
 	if err != nil {
 		log.Panic(err)
+		panic(err)
 	}
 	return nil
 }
@@ -65,12 +63,13 @@ func LexicalHandle()error{
 参数:void
 返回:error
 */
-func GrammarHadle()error {
-	Grammar.ReadLR1TableFile()
+func GrammarHandle(conf Conf.ConfSturct)error {
+	Grammar.ReadLR1TableFile(conf)
 	Grammar.SetLR1Table()
 	err := Grammar.GetLexicalToAnalysis()
 	if err != nil {
 		log.Panic(err)
+		panic(err)
 	}
 	return nil
 }
@@ -84,6 +83,7 @@ func SemantemeHandle()error {
 	err := Semanteme.ForestAnalysis()
 	if err != nil {
 		log.Panic(err)
+		panic(err)
 	}
 	return nil
 }

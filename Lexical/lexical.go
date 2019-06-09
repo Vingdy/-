@@ -2,9 +2,14 @@ package Lexical
 
 import (
 	"github.com/pkg/errors"
-	"fmt"
 	"strconv"
+	"io/ioutil"
+	"fmt"
+	"Conf"
 )
+
+//源程序存放处
+var SourceProgram []rune
 
 //保留字
 var ReserveWords=map[string]int{
@@ -91,7 +96,7 @@ func OutputLexicalResult()error {
 	var ListNum= 0
 	LexicalResultList = append(LexicalResultList, LexicalResultListStruct{})
 	for Num, Result := range LexicalResult {
-		fmt.Println(Result.Character + "->(" + strconv.Itoa(Result.Codevalue) + "," + strconv.Itoa(Result.Typenumber) + ")")
+		//fmt.Println(Result.Character + "->(" + strconv.Itoa(Result.Codevalue) + "," + strconv.Itoa(Result.Typenumber) + ")")
 		LexicalResultList[ListNum].LexicalList = append(LexicalResultList[ListNum].LexicalList, Result)
 		if Result.Character == ";" && Num != (len(LexicalResult)-1) { //以;为一列
 			ListNum++
@@ -247,7 +252,6 @@ func IsSpecialCharacter(token string)bool {
 func ReserveWordsHandle(token string)(bool) {
 	for char, Typenumber := range ReserveWords {
 		if token == char {
-			//fmt.Println(1)
 			Result := LexicalResultStruct{
 				Character:  char,
 				Codevalue:  0,
@@ -255,7 +259,6 @@ func ReserveWordsHandle(token string)(bool) {
 			}
 			LexicalResult = append(LexicalResult, Result)
 			SaveNumber++
-			//fmt.Println(LexicalResult)
 			return true
 		}
 	}
@@ -271,7 +274,6 @@ func ReserveWordsHandle(token string)(bool) {
 func DecollatorWordsHandle(token string)(bool) {
 	for char, Typenumber := range DecollatorWords {
 		if token == char {
-			//fmt.Println(1)
 			Result := LexicalResultStruct{
 				Character:  char,
 				Codevalue:  0,
@@ -294,7 +296,6 @@ func DecollatorWordsHandle(token string)(bool) {
 func OperatorWordsHandle(token string)(bool) {
 	for char, Typenumber := range OperatorWords {
 		if token == char {
-			//fmt.Println(1)
 			Result := LexicalResultStruct{
 				Character:  char,
 				Codevalue:  0,
@@ -348,4 +349,18 @@ func ConstWordsHandle(token string) {
 	}
 	LexicalResult = append(LexicalResult, Result)
 	SaveNumber++
+}
+
+/*
+读取源程序文件
+读取保存在SourceProgram.txt中的源代码
+参数:void
+返回:void
+*/
+func ReadSourceProgramFile(conf Conf.ConfSturct) {
+	body, err := ioutil.ReadFile(conf.ProjectPath+conf.ProgramFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+	SourceProgram = []rune(string(body))
 }

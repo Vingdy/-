@@ -1,0 +1,5 @@
+projectPath: "./"
+isUseLR1Build: false
+grammarFile: "SourceGrammar.txt"
+programFile: "SourceProgram.txt"
+LR1TableFile: "LR1Table.txt"

@@ -7,15 +7,16 @@ import (
 	"Lexical"
 )
 
-func DFS(Tree *Grammar.TreeNode)error{
-
-
+/*
+文法分析
+对语法树根结点进行深度遍历并进行处理
+参数:Tree *Grammar.TreeNode(当前树节点)
+返回:error
+*/
+func TreeDFS(Tree *Grammar.TreeNode)error{
 	for _,v:=range Tree.Next{
-		//fmt.Println(v)
-		//fmt.Println(v.Word)
-		DFS(v)
+		TreeDFS(v)
 	}
-	//fmt.Println(Tree.Word)
 	switch len(Tree.Next) {
 	case 0:
 		return nil
@@ -34,10 +35,11 @@ func DFS(Tree *Grammar.TreeNode)error{
 	case 2:
 		if Tree.Next[0].Word.Typenumber == 2 {
 			fmt.Println(Tree.Next[1].Word.Codevalue)
+			return nil
 		}
 		if Tree.Next[0].Word.Typenumber == 1 {
 			Lexical.VariableWords[Tree.Next[0].Word.Codevalue]=Tree.Next[1].Word.Codevalue
-			return nil //未处理
+			return nil
 		}
 	case 3:
 		if Tree.Next[0].Word.Typenumber == 20 && Tree.Next[2].Word.Typenumber == 21 {
@@ -78,12 +80,15 @@ func DFS(Tree *Grammar.TreeNode)error{
 	return errors.New("语义分析错误")
 }
 
+/*
+文法分析准备
+对语法森林中的语法树根结点进行遍历分析并得出结果
+参数:void
+返回:error
+*/
 func ForestAnalysis()error{
-
-	fmt.Println(Grammar.Forest[0].Next[0].Word)
-	fmt.Println(Grammar.Forest[0].Next[3].Word)
 	for _,Tree:=range Grammar.Forest{
-		err:=DFS(&Tree)
+		err:=TreeDFS(&Tree)
 		if err!=nil{
 			return errors.New("语义分析错误")
 		}
