@@ -82,7 +82,11 @@ LR1TableFile: "LR1Table.txt"
 运行结果:
 
 ![](https://github.com/Vingdy/CompilerExperiment/blob/master/Result1.png)![](https://github.com/Vingdy/CompilerExperiment/blob/master/Result2.png)
+```
+7
 
+Process finished with exit code 0
+```
 
 ## 进度
 
